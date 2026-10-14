@@ -149,22 +149,18 @@ function PerfilTrabajador() {
                     <button
     className="contactar-button"
     onClick={() => {
-
-        console.log("DATOS DEL TRABAJADOR:", trabajador);
-console.log("TELEFONO:", trabajador.telefono);
-
-if (!trabajador.telefono) {
-    alert("El frontend no está recibiendo el teléfono.");
-    return;
-}
-
-        const telefono = trabajador.telefono
+        const telefono = String(trabajador.telefono || "")
             .replace(/\D/g, "");
 
-        const telefonoWhatsApp =
-            telefono.startsWith("56")
-                ? telefono
-                : `56${telefono}`;
+        if (!telefono) {
+            alert("Este profesional no tiene un teléfono registrado.");
+            return;
+        }
+
+        // Agregar código de Chile si todavía no está incluido
+        const telefonoWhatsApp = telefono.startsWith("56")
+            ? telefono
+            : `56${telefono}`;
 
         const mensaje = encodeURIComponent(
             "Hola, vi tu perfil en OfiMatch y me gustaría consultar por tus servicios."
@@ -172,7 +168,8 @@ if (!trabajador.telefono) {
 
         window.open(
             `https://wa.me/${telefonoWhatsApp}?text=${mensaje}`,
-            "_blank"
+            "_blank",
+            "noopener,noreferrer"
         );
     }}
 >
@@ -185,75 +182,72 @@ if (!trabajador.telefono) {
 
 
             <section className="portfolio">
+    <div className="portfolio-header">
+        <div>
+            <h2>Portafolio</h2>
+            <p>Una muestra de los trabajos de este profesional.</p>
+        </div>
 
-                <h2>Portafolio</h2>
+    {!trabajadorId && (
+        <label className="portfolio-upload-button">
+            <span>+ Agregar imágenes</span>
+            <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={seleccionarImagenes}
+            />
+        </label>
+    )}
+</div>
 
+{imagenes.length === 0 ? (
+    <p className="portfolio-vacio">
+        Este trabajador todavía no tiene imágenes en su portafolio.
+    </p>
+) : (
+    <div className="portfolio-grid">
+        {imagenes.map((imagen, index) => (
+            <button
+                className="portfolio-item"
+                key={index}
+                type="button"
+                onClick={() => setImagenSeleccionada(imagen.url)}
+                aria-label={`Ver imagen: ${imagen.nombre}`}
+            >
+                <img
+                    src={imagen.url}
+                    alt={imagen.nombre}
+                    loading="lazy"
+                />
+            </button>
+        ))}
+    </div>
+)}
 
-                {!trabajadorId && (
+{imagenSeleccionada && (
+    <div
+        className="portfolio-modal"
+        onClick={() => setImagenSeleccionada(null)}
+    >
+        <button
+            className="portfolio-modal-cerrar"
+            type="button"
+            onClick={() => setImagenSeleccionada(null)}
+            aria-label="Cerrar imagen"
+        >
+            ×
+        </button>
 
-                    <div className="portfolio-upload">
+        <img
+            src={imagenSeleccionada}
+            alt="Imagen ampliada del portafolio"
+            onClick={(e) => e.stopPropagation()}
+        />
+    </div>
+)}
 
-                        <p>
-                            Agrega imágenes a tu portafolio:
-                        </p>
-
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={seleccionarImagenes}
-                        />
-
-                    </div>
-
-                )}
-
-
-                <div className="portfolio-grid">
-
-                    {imagenes.length === 0 ? (
-
-                        <p className="portfolio-vacio">
-                            Este trabajador todavía no tiene imágenes
-                            en su portafolio.
-                        </p>
-
-                    ) : (
-
-                        imagenes.map((imagen, index) => (
-
-                            <div
-                                className="portfolio-item"
-                                key={index}
-                                onClick={() => setImagenSeleccionada(imagen.url)}
-                            >
-                                <img
-                                    src={imagen.url}
-                                    alt={imagen.nombre}
-                                />
-                            </div>
-
-                        ))
-
-                    )}
-
-                </div>
-                {imagenSeleccionada && (
-
-                    <div
-                        className="portfolio-modal"
-                        onClick={() => setImagenSeleccionada(null)}
-                    >
-
-                        <img
-                            src={imagenSeleccionada}
-                            alt="Imagen del portafolio"
-                        />
-
-                    </div>
-
-                )}
-            </section>
+</section>
 
         </main>
 

@@ -51,6 +51,46 @@ def obtener_trabajadores(db: Session = Depends(obtener_db)):
     trabajadores = db.query(Trabajador).all()
     return trabajadores
 
+@app.get("/trabajadores/detalle")
+def obtener_trabajadores_detalle(db: Session = Depends(obtener_db)):
+    resultado = db.execute(
+        text("""
+            SELECT
+                t.id,
+                u.nombre,
+                u.apellido,
+                c.nombre AS categoria,
+                t.categoria_personalizada,
+                t.biografia,
+                t.ciudad,
+                t.disponible
+            FROM trabajadores t
+            JOIN usuarios u ON u.id = t.usuario_id
+            LEFT JOIN categorias c ON c.id = t.categoria_id
+            ORDER BY t.id
+        """)
+    )
+
+    trabajadores = []
+
+    for fila in resultado:
+        categoria = fila.categoria or "Sin categoría"
+
+        if categoria == "Otro" and fila.categoria_personalizada:
+            categoria = fila.categoria_personalizada
+
+        trabajadores.append({
+            "id": fila.id,
+            "nombre": f"{fila.nombre} {fila.apellido}",
+            "categoria": categoria,
+            "ciudad": fila.ciudad,
+            "descripcion": fila.biografia,
+            "disponible": fila.disponible
+        })
+
+    return trabajadores
+
+
 
 @app.get("/trabajadores/{trabajador_id}")
 def obtener_trabajador(trabajador_id: int, db: Session = Depends(obtener_db)):
@@ -305,96 +345,12 @@ def obtener_trabajador_por_usuario(
         nombre_categoria = trabajador.categoria_personalizada
 
     return {
-        "id": trabajador.id,
-        "usuario_id": trabajador.usuario_id,
-        "nombre": f"{usuario.nombre} {usuario.apellido}",
-        "categoria": nombre_categoria,
-        "biografia": trabajador.biografia,
-        "ciudad": trabajador.ciudad,
-        "disponible": trabajador.disponible
-    }
-@app.get("/trabajadores/detalle")
-def obtener_trabajadores_detalle(db: Session = Depends(obtener_db)):
-
-    resultado = db.execute(
-        text("""
-            SELECT
-                t.id,
-                u.nombre,
-                u.apellido,
-                c.nombre AS categoria,
-                t.categoria_personalizada,
-                t.biografia,
-                t.ciudad,
-                t.disponible
-            FROM trabajadores t
-            JOIN usuarios u
-                ON u.id = t.usuario_id
-            JOIN categorias c
-                ON c.id = t.categoria_id
-            ORDER BY t.id
-        """)
-    )
-
-    trabajadores = []
-
-    for fila in resultado:
-
-        categoria = fila.categoria
-
-        if categoria == "Otro" and fila.categoria_personalizada:
-            categoria = fila.categoria_personalizada
-
-        trabajadores.append({
-            "id": fila.id,
-            "nombre": f"{fila.nombre} {fila.apellido}",
-            "categoria": categoria,
-            "ciudad": fila.ciudad,
-            "descripcion": fila.biografia,
-            "disponible": fila.disponible
-        })
-
-    return trabajadores
-
-@app.get("/trabajadores/detalle")
-def obtener_trabajadores_detalle(db: Session = Depends(obtener_db)):
-
-    resultado = db.execute(
-        text("""
-            SELECT
-                t.id,
-                u.nombre,
-                u.apellido,
-                c.nombre AS categoria,
-                t.categoria_personalizada,
-                t.biografia,
-                t.ciudad,
-                t.disponible
-            FROM trabajadores t
-            JOIN usuarios u
-                ON u.id = t.usuario_id
-            JOIN categorias c
-                ON c.id = t.categoria_id
-            ORDER BY t.id
-        """)
-    )
-
-    trabajadores = []
-
-    for fila in resultado:
-
-        categoria = fila.categoria
-
-        if categoria == "Otro" and fila.categoria_personalizada:
-            categoria = fila.categoria_personalizada
-
-        trabajadores.append({
-            "id": fila.id,
-            "nombre": f"{fila.nombre} {fila.apellido}",
-            "categoria": categoria,
-            "ciudad": fila.ciudad,
-            "descripcion": fila.biografia,
-            "disponible": fila.disponible
-        })
-
-    return trabajadores
+    "id": trabajador.id,
+    "usuario_id": trabajador.usuario_id,
+    "nombre": f"{usuario.nombre} {usuario.apellido}",
+    "telefono": usuario.telefono,
+    "categoria": nombre_categoria,
+    "biografia": trabajador.biografia,
+    "ciudad": trabajador.ciudad,
+    "disponible": trabajador.disponible
+}
